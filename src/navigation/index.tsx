@@ -12,6 +12,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ClientHomeScreen from '../screens/ClientHomeScreen';
 import ProviderHomeScreen from '../screens/ProviderHomeScreen';
 import ExploreScreen from '../screens/ExploreScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 import ServiceDetailScreen from '../screens/ServiceDetailScreen';
 import CheckoutScreen from '../screens/CheckoutScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -77,6 +78,7 @@ export default function Navigation() {
             {user.role === 'CLIENT' && (<>
               <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} options={{ title: '' }} />
               <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: '' }} />
+              <Stack.Screen name="Favorites" component={FavoritesScreen} options={{ title: '' }} />
             </>)}
             <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: '' }} />
             <Stack.Screen name="PaymentMethods" component={PaymentMethodsScreen} options={{ title: '' }} />

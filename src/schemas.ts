@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   identifier: z.string().trim().min(1, 'Introduza e-mail ou NIF')
     .refine((v) => /^\S+@\S+\.\S+$/.test(v) || /^[A-Za-z0-9]{9,14}$/.test(v), 'E-mail ou NIF (9 a 14 caracteres) inválido'),
-  password: z.string().min(1, 'Introduza a palavra-passe'),
+  password: z.string().min(1, 'Introduza a palavra-passe').max(72, 'Máximo 72 caracteres'),
 });
 export type LoginForm = z.infer<typeof loginSchema>;
 
@@ -26,7 +26,7 @@ export const serviceSchema = z.object({
   description: z.string().trim().min(1, 'Introduza uma descrição').max(1000, 'Máximo 1000 caracteres'),
   price: z.string().refine((v) => {
     const n = Number(v.replace(',', '.'));
-    return n > 0 && n <= 10_000_000;
+    return n >= 0.01 && n <= 10_000_000;
   }, 'Preço entre 0,01 e 10 000 000 Kz'),
 });
 export type ServiceForm = z.infer<typeof serviceSchema>;
@@ -42,7 +42,7 @@ export type CardForm = z.input<typeof cardSchema>;
 export const amountSchema = z.object({
   amount: z.string().refine((v) => {
     const n = Number(v.replace(',', '.'));
-    return n > 0 && n <= 1_000_000;
+    return n >= 0.01 && n <= 1_000_000;
   }, 'Valor entre 0,01 e 1 000 000 Kz'),
 });
 export type AmountForm = z.infer<typeof amountSchema>;

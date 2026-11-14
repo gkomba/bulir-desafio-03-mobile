@@ -21,7 +21,7 @@ export default function ServiceDetailScreen({ route, navigation }: NativeStackSc
   return (
     <Screen>
       <View>
-        <ServiceImage service={service} style={{ height: 240, borderRadius: radius.lg }} iconSize={72} />
+        <ServiceImage style={{ height: 240, borderRadius: radius.lg }} iconSize={72} />
         <Ionicons onPress={() => toggle(service.id)} name={fav ? 'heart' : 'heart-outline'} size={22} color={fav ? colors.danger : colors.muted}
           style={{ position: 'absolute', top: 12, right: 12, backgroundColor: '#fff', borderRadius: 18, padding: 7, overflow: 'hidden' }} />
       </View>
