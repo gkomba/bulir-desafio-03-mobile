@@ -39,14 +39,18 @@ http.interceptors.response.use(
       return Promise.reject(e);
     }
     cfg.jaRepetido = true;
+    let accessToken: string;
     try {
-      cfg.headers.Authorization = `Bearer ${await renovar()}`;
-      return await http(cfg);
-    } catch {
-      // Sem renovação possível (refresh expirado ou revogado): termina a sessão.
-      await useAuth.getState().logout();
+      accessToken = await renovar();
+    } catch (falha) {
+      // Só termina a sessão se o servidor recusou o refresh token (expirado ou revogado).
+      // Uma falha de rede ou um erro do servidor não é motivo para sair.
+      const estado = isAxiosError(falha) ? falha.response?.status : undefined;
+      if (estado === 401 || estado === 403) await useAuth.getState().logout();
       return Promise.reject(e);
     }
+    cfg.headers.Authorization = `Bearer ${accessToken}`;
+    return http(cfg);
   },
 );
 

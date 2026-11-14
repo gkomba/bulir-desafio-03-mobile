@@ -26,7 +26,7 @@ export default function TransactionsScreen() {
   // Cancelar devolve o valor ao cliente e concluir não mexe no saldo; em qualquer caso, relê-se o saldo.
   const change = useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'cancel' | 'complete' }) => (action === 'cancel' ? bookingsApi.cancel(id) : bookingsApi.complete(id)),
-    onSuccess: async () => { qc.invalidateQueries({ queryKey: ['transactions'] }); setUser(await authApi.me()); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['transactions'] }); authApi.me().then(setUser).catch(() => undefined); },
     onError: (e) => dialog.alert(errorMessage(e), 'Operação falhou'),
   });
   const ask = (id: string, action: 'cancel' | 'complete') => dialog.confirm(
