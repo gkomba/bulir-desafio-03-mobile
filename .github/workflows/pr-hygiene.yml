@@ -1,0 +1,95 @@
+name: PR Hygiene
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-hygiene-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Validar Pull Request
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ALLOWED_EMAILS: ${{ vars.PR_ALLOWED_EMAILS }}
+        run: bash .github/scripts/pr-hygiene.sh
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable && pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then
+            corepack enable && yarn install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Lint
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run lint:ci
+          elif [ -f yarn.lock ]; then yarn lint:ci
+          else npm run lint:ci
+          fi
+
+      - name: Build
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run build
+          elif [ -f yarn.lock ]; then yarn build
+          else npm run build
+          fi
+
+  test:
+    needs: [hygiene, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependências
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            corepack enable && pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then
+            corepack enable && yarn install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Testes unitários
+        env:
+          CI: true
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm run test:ci
+          elif [ -f yarn.lock ]; then yarn test:ci
+          else npm run test:ci
+          fi
