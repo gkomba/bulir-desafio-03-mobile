@@ -1,5 +1,5 @@
 import React from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View, ViewStyle } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing } from '../theme';
 
@@ -15,7 +15,8 @@ export function Screen({ children, scroll = true, style, blobs }: { children: Re
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'left', 'right']}>
       {blobs && <Blobs variant={blobs} />}
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* "padding" também no Android: com o ecrã de ponta a ponta o sistema já não o redimensiona e o teclado tapava os campos. */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         {scroll
           ? <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[{ padding: spacing.md }, style]}>{children}</ScrollView>
           : <View style={[{ flex: 1, padding: spacing.md }, style]}>{children}</View>}

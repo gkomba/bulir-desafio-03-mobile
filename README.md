@@ -1,4 +1,4 @@
-# Presta-ja: app móvel (Desafio 3)
+# Bulir: app móvel (Desafio 3)
 
 App React Native (Expo) em TypeScript para a plataforma de contratação de prestadores de serviços. Consome a API do Desafio 1 ([bulir-desafio-01-backend](https://github.com/gkomba/bulir-desafio-01-backend)).
 

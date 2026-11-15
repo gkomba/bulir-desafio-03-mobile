@@ -30,7 +30,7 @@ export default function SettingsScreen({ navigation }: NativeStackScreenProps<an
       <Group title="Suporte">
         <MenuItem icon="help-circle-outline" label="Ajuda e suporte" onPress={() => dialog.alert('Contacte-nos em suporte@bulir.com', 'Ajuda')} />
         <MenuItem icon="document-text-outline" label="Termos e privacidade" onPress={() => dialog.alert('Os seus dados são usados apenas para operar a plataforma.', 'Privacidade')} />
-        <MenuItem icon="information-circle-outline" label="Sobre" hint={`Presta-ja · versão ${Constants.expoConfig?.version ?? '1.0.0'}`} />
+        <MenuItem icon="information-circle-outline" label="Sobre" hint={`${Constants.expoConfig?.name ?? 'Bulir'} · versão ${Constants.expoConfig?.version ?? '1.0.0'}`} />
       </Group>
       <Group title="Sessão">
         <MenuItem icon="log-out-outline" label="Terminar sessão" danger onPress={() => dialog.confirm('Tem a certeza que quer sair?', signOut, { title: 'Terminar sessão', confirmText: 'Sair', destructive: true })} />
