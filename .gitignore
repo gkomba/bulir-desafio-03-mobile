@@ -10,3 +10,9 @@ coverage/
 src/generated/
 .context
 .expo/
+
+# Projeto nativo gerado por `expo prebuild` e APKs
+/android/
+/ios/
+*.apk
+*.aab
