@@ -17,7 +17,7 @@ export default function MyServicesScreen({ navigation }: NativeStackScreenProps<
   const qc = useQueryClient();
   const { data, isLoading, error, refetch, isRefetching } = useMyServices();
   const del = useMutation({
-    mutationFn: servicesApi.remove,
+    mutationFn: (id: string) => servicesApi.remove(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-services'] }),
     onError: (e) => dialog.alert(errorMessage(e), 'Erro'),
   });

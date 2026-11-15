@@ -18,6 +18,8 @@ export function useHire(onDone?: () => void) {
   // A mesma chave para o mesmo pedido (serviço e data): se for repetido, a API não cobra duas vezes.
   // Outro serviço ou outra data é um pedido novo e leva outra chave.
   const tentativa = useRef<{ pedido: string; chave: string } | null>(null);
+  // Marca síncrona: o estado da mutação só se atualiza no ciclo seguinte, e dois toques seguidos passariam os dois.
+  const emCurso = useRef(false);
   const m = useMutation({
     mutationFn: ({ service, scheduledAt }: { service: Service; scheduledAt: Date }) => {
       const pedido = `${service.id}|${scheduledAt.toISOString()}`;
@@ -32,6 +34,7 @@ export function useHire(onDone?: () => void) {
       dialog.alert('Serviço contratado com sucesso!', 'Sucesso');
       onDone?.();
     },
+    onSettled: () => { emCurso.current = false; },
     onError: (e) => {
       // Um erro 4xx é definitivo. Numa falha de rede ou num 5xx, o servidor pode ter cobrado:
       // a próxima tentativa repete a mesma chave e não cobra outra vez.
@@ -41,11 +44,12 @@ export function useHire(onDone?: () => void) {
     },
   });
   const hire = (service: Service, scheduledAt: Date) => {
-    if (m.isPending) return;
+    if (emCurso.current) return;
     // Verificação prévia (UX); o servidor decide.
     if (user.balance < service.price) {
       return dialog.alert(`Precisa de ${money(service.price)} e tem ${money(user.balance)}.`, 'Saldo insuficiente');
     }
+    emCurso.current = true;
     m.mutate({ service, scheduledAt });
   };
   return { hire, pendingId: m.isPending ? m.variables?.service.id : undefined };
