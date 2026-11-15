@@ -22,12 +22,12 @@ O endereço da API muda conforme onde a app corre:
 
 | Onde | Endereço |
 | --- | --- |
-| Telemóvel real ou emulador (Expo Go) | O IP do computador que serve a app, na porta 3000 (descoberto sozinho; o telemóvel tem de estar na mesma Wi-Fi) |
-| Emulador Android sem IP do Expo | `http://10.0.2.2:3000` |
-| Simulador iOS ou web | `http://localhost:3000` |
-| Expo em modo túnel, ou uma API hospedada | `EXPO_PUBLIC_API_URL=https://<endereço da API> npx expo start` (manda sobre tudo o resto) |
+| Telemóvel real, emulador ou simulador, no Expo Go | O IP do computador que serve a app, na porta 3000 (descoberto sozinho; o telemóvel tem de estar na mesma Wi-Fi) |
+| Web | `http://localhost:3000` |
+| O Expo não dá um IP (modo túnel, ou uma app instalada fora do Expo Go) | `10.0.2.2` no emulador Android e `localhost` no simulador iOS. **Num telemóvel real, `EXPO_PUBLIC_API_URL` é obrigatória** |
+| Uma API hospedada, ou para forçar um endereço | `EXPO_PUBLIC_API_URL=https://<endereço da API> npx expo start` (manda sobre tudo o resto) |
 
-A app acrescenta `/v1` ao endereço (ver `src/config.ts`). Se, num telemóvel, aparecer "Sem ligação ao servidor", confirme que a API está a correr, que o telemóvel e o computador estão na mesma rede e que a firewall do computador deixa entrar a porta 3000.
+A app acrescenta `/v1` ao endereço (ver `src/config.ts`). A API tem de escutar em `0.0.0.0` (o Docker Compose já o faz), para se chegar a ela pelo IP da rede. Para voltar ao comportamento antigo no emulador, use `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`. Se, num telemóvel, aparecer "Sem ligação ao servidor", confirme que a API está a correr, que o telemóvel e o computador estão na mesma rede e que a firewall do computador deixa entrar a porta 3000.
 
 ## Autenticação
 
