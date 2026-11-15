@@ -22,11 +22,12 @@ O endereço da API muda conforme onde a app corre:
 
 | Onde | Endereço |
 | --- | --- |
-| Emulador Android | `http://10.0.2.2:3000` (já é o padrão) |
-| Simulador iOS ou web | `http://localhost:3000` (já é o padrão) |
-| Telemóvel real | `EXPO_PUBLIC_API_URL=http://<IP do computador>:3000 npx expo start` |
+| Telemóvel real ou emulador (Expo Go) | O IP do computador que serve a app, na porta 3000 (descoberto sozinho; o telemóvel tem de estar na mesma Wi-Fi) |
+| Emulador Android sem IP do Expo | `http://10.0.2.2:3000` |
+| Simulador iOS ou web | `http://localhost:3000` |
+| Expo em modo túnel, ou uma API hospedada | `EXPO_PUBLIC_API_URL=https://<endereço da API> npx expo start` (manda sobre tudo o resto) |
 
-A app acrescenta `/v1` ao endereço (ver `src/config.ts`).
+A app acrescenta `/v1` ao endereço (ver `src/config.ts`). Se, num telemóvel, aparecer "Sem ligação ao servidor", confirme que a API está a correr, que o telemóvel e o computador estão na mesma rede e que a firewall do computador deixa entrar a porta 3000.
 
 ## Autenticação
 
