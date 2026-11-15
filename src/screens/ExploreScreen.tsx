@@ -36,7 +36,7 @@ export default function ExploreScreen({ navigation, route }: NativeStackScreenPr
     .filter((s) => !category || s.category === category)
     .filter((s) => `${s.title} ${s.description}`.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => sort === 'cheap' ? a.price - b.price : sort === 'expensive' ? b.price - a.price : sort === 'az' ? a.title.localeCompare(b.title) : 0);
-  if (sort === 'new') list.reverse();
+  // A API já devolve os mais recentes primeiro: "Recentes" é a ordem original.
   // As primeiras imagens da lista descarregam-se já, antes de o utilizador as ver.
   const firstImages = list.slice(0, 8).map((s) => s.imageUrl).join('|');
   useEffect(() => { prefetchImages(firstImages.split('|'), { width: 170, height: 170 }); }, [firstImages]);
