@@ -4,9 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../store/auth';
 import { useFavorites } from '../store/favorites';
-import { Body, Button, Title } from '../components/ui';
+import { Body, Button, Chip, Title } from '../components/ui';
 import { ServiceImage } from '../components/media';
 import { Screen } from '../components/Screen';
+import { categoryLabel } from '../constants';
 import { money } from '../format';
 import { colors, fonts, radius, spacing } from '../theme';
 import type { Service } from '../types';
@@ -21,11 +22,12 @@ export default function ServiceDetailScreen({ route, navigation }: NativeStackSc
   return (
     <Screen>
       <View>
-        <ServiceImage style={{ height: 240, borderRadius: radius.lg }} iconSize={72} />
+        <ServiceImage category={service.category} style={{ height: 240, borderRadius: radius.lg }} iconSize={72} />
         <Ionicons onPress={() => toggle(service.id)} name={fav ? 'heart' : 'heart-outline'} size={22} color={fav ? colors.danger : colors.muted}
           style={{ position: 'absolute', top: 12, right: 12, backgroundColor: '#fff', borderRadius: 18, padding: 7, overflow: 'hidden' }} />
       </View>
-      <Title style={{ fontSize: 26, marginTop: spacing.md }}>{service.title}</Title>
+      <View style={{ flexDirection: 'row', marginTop: spacing.md }}><Chip text={categoryLabel(service.category)} /></View>
+      <Title style={{ fontSize: 26, marginTop: spacing.sm }}>{service.title}</Title>
       <Text style={{ fontFamily: fonts.heading, fontSize: 28, color: colors.text, marginVertical: spacing.sm }}>{money(service.price)}</Text>
       <Text style={{ fontFamily: fonts.headingSemi, fontSize: 16, color: colors.text, marginBottom: 4 }}>Descrição</Text>
       <Body style={{ lineHeight: 22, marginBottom: spacing.md }}>{service.description}</Body>

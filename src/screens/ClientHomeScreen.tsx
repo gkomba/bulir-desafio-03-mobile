@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useServices, useSyncedUser } from '../hooks/queries';
 import { useFavorites } from '../store/favorites';
-import { HScroll, HomeHeader, SectionHeader } from '../components/home';
+import { CategoryRow, HScroll, HomeHeader, SectionHeader } from '../components/home';
 import { ServiceGridCard } from '../components/media';
 import { Button, Empty, Loading } from '../components/ui';
 import { colors, fonts, radius, spacing } from '../theme';
@@ -43,6 +43,9 @@ export default function ClientHomeScreen() {
         </Pressable>
 
       
+
+        <SectionHeader title="Categorias" action="Ver todas" onAction={() => nav.navigate('Explore')} />
+        <CategoryRow selected={null} onSelect={(c) => nav.navigate('Explore', { category: c })} />
 
         {services.isLoading ? <Loading /> : (<>
           <SectionHeader title="Novos serviços" action="Ver todos" onAction={() => nav.navigate('Explore')} />

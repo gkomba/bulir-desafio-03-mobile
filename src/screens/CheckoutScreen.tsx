@@ -26,7 +26,7 @@ export default function CheckoutScreen({ route, navigation }: NativeStackScreenP
       <Title style={{ marginBottom: spacing.md }}>Pagamento</Title>
 
       <Card style={{ flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: spacing.md }}>
-        <ServiceImage style={{ width: 64, height: 64, borderRadius: 32 }} iconSize={26} />
+        <ServiceImage category={service.category} style={{ width: 64, height: 64, borderRadius: 32 }} iconSize={26} />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={{ fontFamily: fonts.headingSemi, color: colors.text }}>{service.title}</Text>
           <Body>{service.description.slice(0, 60)}</Body>
