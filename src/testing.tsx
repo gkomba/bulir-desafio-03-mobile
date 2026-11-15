@@ -6,7 +6,8 @@ import { AxiosError } from 'axios';
 /** Mostra a tela com o React Query, sem repetições nem temporizadores que prendam o Jest. */
 export const renderComQuery = (ui: React.ReactElement) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } } });
-  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  const com = (el: React.ReactElement) => <QueryClientProvider client={client}>{el}</QueryClientProvider>;
+  return Promise.resolve(render(com(ui))).then((r) => ({ ...r, rerenderComQuery: (el: React.ReactElement) => r.rerender(com(el)) }));
 };
 
 /** Props mínimas que o React Navigation passa a uma tela. */

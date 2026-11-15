@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { CATEGORIES } from './constants';
+import type { ServiceCategory } from './types';
 
 export const loginSchema = z.object({
   identifier: z.string().trim().min(1, 'Introduza e-mail ou NIF')
@@ -28,6 +30,7 @@ export const serviceSchema = z.object({
     const n = Number(v.replace(',', '.'));
     return n >= 0.01 && n <= 10_000_000;
   }, 'Preço entre 0,01 e 10 000 000 Kz'),
+  category: z.enum(CATEGORIES.map((c) => c.key) as [ServiceCategory, ...ServiceCategory[]], { message: 'Escolha uma categoria' }),
 });
 export type ServiceForm = z.infer<typeof serviceSchema>;
 

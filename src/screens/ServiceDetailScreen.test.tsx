@@ -8,7 +8,7 @@ import type { Service } from '../types';
 
 jest.mock('../store/storage', () => ({ storage: { get: jest.fn(async () => null), set: jest.fn(async () => undefined), del: jest.fn(async () => undefined) } }));
 
-const servico: Service = { id: 's1', title: 'Canalização', description: 'Reparação de fugas e desentupimentos', price: 200, providerId: 'p1' };
+const servico: Service = { id: 's1', title: 'Canalização', description: 'Reparação de fugas e desentupimentos', price: 200, providerId: 'p1', category: 'HOME' };
 const entrar = (balance: number) => useAuth.getState().setSession({ accessToken: 'a', refreshToken: 'r', user: { id: 'u1', name: 'Ana', email: 'ana@exemplo.com', role: 'CLIENT', balance } });
 const navegar = (p: ReturnType<typeof props>) => (p.navigation as unknown as { navigate: jest.Mock }).navigate;
 
@@ -24,6 +24,12 @@ describe('detalhe do serviço: o cliente contrata se tiver saldo', () => {
     expect(screen.getByText('Canalização')).toBeOnTheScreen();
     expect(screen.getByText('200,00 Kz')).toBeOnTheScreen();
     expect(screen.getByText('Reparação de fugas e desentupimentos')).toBeOnTheScreen();
+  });
+
+  it('mostra a categoria do serviço', async () => {
+    await entrar(500);
+    await renderComQuery(<ServiceDetailScreen {...props({ service: { ...servico, category: 'BEAUTY' } })} />);
+    expect(screen.getByText('Beleza')).toBeOnTheScreen();
   });
 
   it('com saldo suficiente, oferece "Contratar agora" e segue para o pagamento', async () => {

@@ -11,7 +11,7 @@ jest.mock('../api', () => ({ servicesApi: { byProvider: jest.fn(), remove: jest.
 
 const byProvider = servicesApi.byProvider as jest.Mock;
 const remove = servicesApi.remove as jest.Mock;
-const servico = (id: string, title: string, price: number) => ({ id, title, description: `Descrição de ${title}`, price, providerId: 'u1' });
+const servico = (id: string, title: string, price: number) => ({ id, title, description: `Descrição de ${title}`, price, providerId: 'u1', category: 'HOME' as const });
 
 beforeEach(async () => {
   jest.clearAllMocks();

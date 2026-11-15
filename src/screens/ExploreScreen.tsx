@@ -1,4 +1,4 @@
-// Cliente: catálogo em grelha com pesquisa e ordenação
+// Cliente: catálogo em grelha com pesquisa, categorias e ordenação
 import React, { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,26 +7,39 @@ import { useServices } from '../hooks/queries';
 import { useFavorites } from '../store/favorites';
 import { errorMessage } from '../api/client';
 import { ServiceGridCard } from '../components/media';
+import { CategoryRow } from '../components/home';
 import { Empty, ErrorState, Loading, Title } from '../components/ui';
+import { categoryLabel } from '../constants';
+import type { ServiceCategory } from '../types';
 import { Screen } from '../components/Screen';
 import { colors, fonts, radius, spacing } from '../theme';
 
 type Sort = 'new' | 'cheap' | 'expensive' | 'az';
 const SORTS: [Sort, string][] = [['new', 'Recentes'], ['cheap', 'Mais baratos'], ['expensive', 'Mais caros'], ['az', 'A–Z']];
 
-export default function ExploreScreen({ navigation }: NativeStackScreenProps<any>) {
+export default function ExploreScreen({ navigation, route }: NativeStackScreenProps<any>) {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<Sort>('new');
+  const [category, setCategory] = useState<ServiceCategory | null>(route.params?.category ?? null);
+  // Vindo do início, a categoria já chega escolhida. Ajusta-se durante o render, sem efeito:
+  // cada navegação traz um objeto de parâmetros novo, mesmo com a mesma categoria.
+  const [params, setParams] = useState(route.params);
+  if (route.params !== params) {
+    setParams(route.params);
+    if (route.params && 'category' in route.params) setCategory(route.params.category ?? null);
+  }
   const { data, isLoading, error, refetch, isRefetching } = useServices();
   const { ids, toggle } = useFavorites();
 
   const list = (data ?? [])
+    .filter((s) => !category || s.category === category)
     .filter((s) => `${s.title} ${s.description}`.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => sort === 'cheap' ? a.price - b.price : sort === 'expensive' ? b.price - a.price : sort === 'az' ? a.title.localeCompare(b.title) : 0);
   if (sort === 'new') list.reverse();
 
   const header = (
     <View>
+      <CategoryRow selected={category} onSelect={setCategory} />
       <View style={{ flexDirection: 'row', gap: 8, marginVertical: spacing.sm, flexWrap: 'wrap' }}>
         {SORTS.map(([k, l]) => (
           <Pressable key={k} onPress={() => setSort(k)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, backgroundColor: sort === k ? colors.navy : colors.tint }}>
@@ -34,7 +47,7 @@ export default function ExploreScreen({ navigation }: NativeStackScreenProps<any
           </Pressable>
         ))}
       </View>
-      <Text style={{ fontFamily: fonts.headingSemi, fontSize: 18, color: colors.text, marginBottom: spacing.sm }}>Todos os serviços · {list.length}</Text>
+      <Text style={{ fontFamily: fonts.headingSemi, fontSize: 18, color: colors.text, marginBottom: spacing.sm }}>{category ? categoryLabel(category) : 'Todos os serviços'} · {list.length}</Text>
     </View>
   );
 

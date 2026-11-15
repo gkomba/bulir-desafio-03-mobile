@@ -2,11 +2,11 @@ import React from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ArrowButton, Card } from './ui';
-import { colors, fonts, radius, spacing } from '../theme';
+import { colors, fonts, radius, shadowSoft, spacing } from '../theme';
 import { money } from '../format';
-import type { Booking, User } from '../types';
+import type { Booking, ServiceCategory, User } from '../types';
 import { useNavigation } from '@react-navigation/native';
-import type { IconName } from '../constants';
+import { CATEGORIES, type IconName } from '../constants';
 
 
 const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 19 ? 'Boa tarde' : 'Boa noite'; };
@@ -34,6 +34,27 @@ export const Announcement = ({ title, text, onPress }: { title: string; text: st
     <ArrowButton onPress={onPress} />
   </View>
 );
+
+/** Círculos das categorias, mais "Todos". `selected` é o código da categoria ou null. */
+export function CategoryRow({ selected, onSelect }: { selected: ServiceCategory | null; onSelect: (c: ServiceCategory | null) => void }) {
+  const todos: { key: ServiceCategory | null; label: string; icon: IconName }[] = [{ key: null, label: 'Todos', icon: 'grid-outline' }, ...CATEGORIES];
+  return (
+    <HScroll>
+      {todos.map((c) => {
+        const active = selected === c.key;
+        return (
+          <Pressable key={c.label} onPress={() => onSelect(c.key)} accessibilityRole="button" accessibilityState={{ selected: active }} accessibilityLabel={c.label}
+            style={{ alignItems: 'center', marginRight: 14, width: 62 }}>
+            <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: active ? colors.primary : '#fff', alignItems: 'center', justifyContent: 'center', ...shadowSoft }}>
+              <Ionicons name={c.icon} size={23} color={active ? colors.navy : colors.accent} />
+            </View>
+            <Text numberOfLines={1} style={{ fontFamily: active ? fonts.bodyBold : fonts.body, fontSize: 11, color: colors.text, marginTop: 5 }}>{c.label}</Text>
+          </Pressable>
+        );
+      })}
+    </HScroll>
+  );
+}
 
 export const MenuItem = ({ icon, label, hint, onPress, danger, right }: { icon: IconName; label: string; hint?: string; onPress?: () => void; danger?: boolean; right?: React.ReactNode }) => (
   <Pressable onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, opacity: pressed ? 0.6 : 1 })}>

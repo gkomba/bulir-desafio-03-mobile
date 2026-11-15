@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useServices, useSyncedUser } from '../hooks/queries';
 import { useFavorites } from '../store/favorites';
-import { HScroll, HomeHeader, SectionHeader } from '../components/home';
+import { CategoryRow, HScroll, HomeHeader, SectionHeader } from '../components/home';
 import { ServiceGridCard } from '../components/media';
 import { Button, Empty, Loading } from '../components/ui';
 import { colors, fonts, radius, spacing } from '../theme';
@@ -37,15 +37,18 @@ export default function ClientHomeScreen() {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refresh} />}>
         <HomeHeader user={user} />
 
-        <Pressable onPress={() => nav.navigate('Explore')} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.field, borderRadius: radius.pill, paddingHorizontal: 16, height: 46, marginBottom: spacing.md }}>
+        <Pressable onPress={() => nav.navigate('Explore', { category: null })} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.field, borderRadius: radius.pill, paddingHorizontal: 16, height: 46, marginBottom: spacing.md }}>
           <Ionicons name="search" size={18} color={colors.muted} />
           <Text style={{ marginLeft: 8, fontFamily: fonts.body, color: '#B5B9C4' }}>Pesquisar serviços...</Text>
         </Pressable>
 
       
 
+        <SectionHeader title="Categorias" action="Ver todas" onAction={() => nav.navigate('Explore', { category: null })} />
+        <CategoryRow selected={null} onSelect={(c) => nav.navigate('Explore', { category: c })} />
+
         {services.isLoading ? <Loading /> : (<>
-          <SectionHeader title="Novos serviços" action="Ver todos" onAction={() => nav.navigate('Explore')} />
+          <SectionHeader title="Novos serviços" action="Ver todos" onAction={() => nav.navigate('Explore', { category: null })} />
           {newest.length ? row(newest) : <Empty text="Ainda não há serviços." />}
 
           {!!favs.length && (<><SectionHeader title="Os seus favoritos" action="Ver" onAction={() => nav.navigate('Favorites')} />{row(favs)}</>)}
@@ -56,7 +59,7 @@ export default function ClientHomeScreen() {
           
         </>)}
         <View style={{ height: spacing.md }} />
-        <Button title="Ver todos os serviços" variant="soft" onPress={() => nav.navigate('Explore')} />
+        <Button title="Ver todos os serviços" variant="soft" onPress={() => nav.navigate('Explore', { category: null })} />
       </ScrollView>
     </SafeAreaView>
   );

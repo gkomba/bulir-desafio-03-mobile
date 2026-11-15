@@ -1,6 +1,6 @@
 import { http } from './client';
 import { useAuth } from '../store/auth';
-import type { Booking, BookingStatus, Role, Service, Session, User } from '../types';
+import type { Booking, BookingStatus, Role, Service, ServiceCategory, Session, User } from '../types';
 import type { LoginForm, RegisterForm } from '../schemas';
 
 /*
@@ -8,9 +8,9 @@ import type { LoginForm, RegisterForm } from '../schemas';
  * A API guarda dinheiro em cêntimos; a app mostra e edita Kwanzas.
  */
 interface UserDto { id: string; fullName: string; email: string; nif: string | null; role: Role; balanceCents: number }
-interface ServiceDto { id: string; providerId: string; name: string; description: string; priceCents: number }
+interface ServiceDto { id: string; providerId: string; name: string; description: string; priceCents: number; category: ServiceCategory }
 interface BookingDto {
-  id: string; serviceId: string; serviceName: string; providerId: string; clientId: string;
+  id: string; serviceId: string; serviceName: string; providerId: string; providerName: string; clientId: string; clientName: string;
   priceCents: number; status: BookingStatus; scheduledAt: string; createdAt: string;
 }
 interface Page<T> { items: T[]; total: number; page: number; pageSize: number }
@@ -22,10 +22,10 @@ const toUser = (u: UserDto): User => ({
   id: u.id, name: u.fullName, email: u.email, nif: u.nif ?? undefined, role: u.role, balance: toKwanzas(u.balanceCents),
 });
 const toService = (s: ServiceDto): Service => ({
-  id: s.id, title: s.name, description: s.description, price: toKwanzas(s.priceCents), providerId: s.providerId,
+  id: s.id, title: s.name, description: s.description, price: toKwanzas(s.priceCents), providerId: s.providerId, category: s.category,
 });
 const toBooking = (b: BookingDto): Booking => ({
-  id: b.id, serviceId: b.serviceId, serviceTitle: b.serviceName, providerId: b.providerId, clientId: b.clientId,
+  id: b.id, serviceId: b.serviceId, serviceTitle: b.serviceName, providerId: b.providerId, providerName: b.providerName, clientId: b.clientId, clientName: b.clientName,
   amount: toKwanzas(b.priceCents), status: b.status, scheduledAt: b.scheduledAt, createdAt: b.createdAt,
 });
 
@@ -68,9 +68,9 @@ export const signOut = async (): Promise<void> => {
   await useAuth.getState().logout();
 };
 
-export interface ServicePayload { title: string; description: string; price: number }
+export interface ServicePayload { title: string; description: string; price: number; category: ServiceCategory }
 
-const toBody = ({ title, description, price }: ServicePayload) => ({ name: title, description, priceCents: toCents(price) });
+const toBody = ({ title, description, price, category }: ServicePayload) => ({ name: title, description, priceCents: toCents(price), category });
 
 export const servicesApi = {
   all: () => allPages<ServiceDto>('/services').then((l) => l.map(toService)),

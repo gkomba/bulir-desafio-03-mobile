@@ -5,8 +5,8 @@ import { useAuth } from '../store/auth';
 jest.mock('../store/storage', () => ({ storage: { get: jest.fn(async () => null), set: jest.fn(async () => undefined), del: jest.fn(async () => undefined) } }));
 
 const userDto = { id: 'u1', fullName: 'Ana Silva', email: 'ana@exemplo.com', nif: null, role: 'CLIENT', balanceCents: 123456 };
-const serviceDto = { id: 's1', providerId: 'p1', name: 'Canalização', description: 'Fugas', priceCents: 15050 };
-const bookingDto = { id: 'b1', serviceId: 's1', serviceName: 'Canalização', providerId: 'p1', clientId: 'u1', priceCents: 15050, status: 'CONFIRMED', scheduledAt: '2026-12-01T10:00:00.000Z', createdAt: '2026-11-15T10:00:00.000Z' };
+const serviceDto = { id: 's1', providerId: 'p1', name: 'Canalização', description: 'Fugas', priceCents: 15050, category: 'HOME' };
+const bookingDto = { id: 'b1', serviceId: 's1', serviceName: 'Canalização', providerId: 'p1', providerName: 'Paulo Barbeiro', clientId: 'u1', clientName: 'Ana Silva', priceCents: 15050, status: 'CONFIRMED', scheduledAt: '2026-12-01T10:00:00.000Z', createdAt: '2026-11-15T10:00:00.000Z' };
 
 beforeEach(async () => {
   await useAuth.getState().logout();
@@ -106,20 +106,20 @@ describe('serviços', () => {
     const { chamadas } = servidorFalso(() => ({ data: { items: [serviceDto], total: 1, page: 1, pageSize: 100 } }));
     const lista = await servicesApi.byProvider('p1');
     expect(chamadas[0].params['providerId']).toBe('p1');
-    expect(lista[0]).toEqual({ id: 's1', title: 'Canalização', description: 'Fugas', price: 150.5, providerId: 'p1' });
+    expect(lista[0]).toEqual({ id: 's1', title: 'Canalização', description: 'Fugas', price: 150.5, providerId: 'p1', category: 'HOME' });
   });
 
   it('criar envia name, description e priceCents', async () => {
     const { chamadas } = servidorFalso(() => ({ status: 201, data: serviceDto }));
-    const s = await servicesApi.create({ title: 'Canalização', description: 'Fugas', price: 150.5 });
-    expect(chamadas[0]).toMatchObject({ method: 'POST', url: '/services', body: { name: 'Canalização', description: 'Fugas', priceCents: 15050 } });
+    const s = await servicesApi.create({ title: 'Canalização', description: 'Fugas', price: 150.5, category: 'HOME' });
+    expect(chamadas[0]).toMatchObject({ method: 'POST', url: '/services', body: { name: 'Canalização', description: 'Fugas', priceCents: 15050, category: 'HOME' } });
     expect(s.price).toBe(150.5);
   });
 
   it('editar usa PATCH', async () => {
     const { chamadas } = servidorFalso(() => ({ data: serviceDto }));
-    await servicesApi.update('s1', { title: 'Novo', description: 'D', price: 20 });
-    expect(chamadas[0]).toMatchObject({ method: 'PATCH', url: '/services/s1', body: { name: 'Novo', priceCents: 2000 } });
+    await servicesApi.update('s1', { title: 'Novo', description: 'D', price: 20, category: 'BEAUTY' });
+    expect(chamadas[0]).toMatchObject({ method: 'PATCH', url: '/services/s1', body: { name: 'Novo', priceCents: 2000, category: 'BEAUTY' } });
   });
 
   it('excluir usa DELETE', async () => {
@@ -141,7 +141,7 @@ describe('reservas', () => {
 
   it('o histórico junta as páginas e converte os valores', async () => {
     servidorFalso(() => ({ data: { items: [bookingDto], total: 1, page: 1, pageSize: 100 } }));
-    expect(await bookingsApi.list()).toEqual([{ id: 'b1', serviceId: 's1', serviceTitle: 'Canalização', providerId: 'p1', clientId: 'u1', amount: 150.5, status: 'CONFIRMED', scheduledAt: '2026-12-01T10:00:00.000Z', createdAt: '2026-11-15T10:00:00.000Z' }]);
+    expect(await bookingsApi.list()).toEqual([{ id: 'b1', serviceId: 's1', serviceTitle: 'Canalização', providerId: 'p1', providerName: 'Paulo Barbeiro', clientId: 'u1', clientName: 'Ana Silva', amount: 150.5, status: 'CONFIRMED', scheduledAt: '2026-12-01T10:00:00.000Z', createdAt: '2026-11-15T10:00:00.000Z' }]);
   });
 
   it('cancelar e concluir são POST nas rotas da reserva', async () => {

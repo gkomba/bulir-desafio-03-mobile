@@ -7,8 +7,8 @@ App React Native (Expo) em TypeScript para a plataforma de contratação de pres
 | Perfil | O que faz |
 | --- | --- |
 | Todos | Entrar com **e-mail ou NIF** e senha, criar conta, ver o histórico de reservas, terminar sessão |
-| Cliente | Ver o catálogo (com pesquisa e ordenação), contratar um serviço escolhendo o **dia e a hora**, carregar saldo, cancelar uma reserva (o valor é devolvido), marcar favoritos |
-| Prestador (o NIF é só dele) | Criar, editar e excluir os seus serviços, ver o saldo, concluir reservas |
+| Cliente | Ver o catálogo (com pesquisa, **categorias** e ordenação), contratar um serviço escolhendo o **dia e a hora**, carregar saldo, cancelar uma reserva (o valor é devolvido), marcar favoritos |
+| Prestador (o NIF é só dele) | Criar, editar e excluir os seus serviços (escolhendo a **categoria**), ver o saldo, concluir reservas |
 
 As regras de permissão estão no servidor e a app também as aplica: cada perfil só vê as suas telas. Os formulários validam com Zod, com os mesmos limites da API.
 
@@ -45,11 +45,11 @@ A API do Desafio 1 autentica por cookies `HttpOnly`, que uma app React Native n�
 | Login com e-mail ou NIF | `POST /auth/login` com `{ email }` ou `{ nif }` |
 | Criar conta | `POST /auth/register`, e depois login |
 | Utilizador e saldo | `GET /auth/me` |
-| Catálogo | `GET /services` (paginado: junta as páginas) |
+| Catálogo | `GET /services` (paginado: junta as páginas; cada serviço traz a `category`) |
 | Serviços do prestador | `GET /services?providerId=` |
-| Criar, editar, excluir serviço | `POST`, `PATCH` e `DELETE /services/:id` (`name`, `priceCents`) |
+| Criar, editar, excluir serviço | `POST`, `PATCH` e `DELETE /services/:id` (`name`, `priceCents`, `category`) |
 | Contratar | `POST /bookings` com `serviceId` e `scheduledAt`, com `Idempotency-Key` |
-| Histórico | `GET /bookings` |
+| Histórico | `GET /bookings` (cada reserva traz `clientName` e `providerName`) |
 | Cancelar (cliente) e concluir (prestador) | `POST /bookings/:id/cancel` e `/complete` |
 | Carregar saldo | `POST /payments` (pagamento simulado, com `Idempotency-Key`) |
 
@@ -93,7 +93,8 @@ O que cobrem, pelos pontos do enunciado:
 | Só clientes veem os serviços e contratam | `ExploreScreen` (pesquisa e ordenação), `ServiceDetailScreen` (com saldo segue para o pagamento, sem saldo leva à carteira) |
 | Contratar com verificação de saldo | `CheckoutScreen`, `useHire` (saldo igual ao preço chega, a menos não; chave de idempotência; duplo toque) |
 | Atualizar o saldo do cliente e do prestador | `WalletScreen`, `TransactionsScreen` (cancelar devolve o valor, o saldo é relido) |
-| Histórico: serviço, prestador, cliente e valor | `TxRow`, `TransactionsScreen` (filtros, balanço sem as canceladas, ações por perfil) |
+| Histórico: serviço, prestador, cliente e valor | `TxRow` (mostra o nome das duas partes), `TransactionsScreen` (filtros, balanço sem as canceladas, ações por perfil) |
+| Categorias dos serviços | `constants`, `CategoryRow`, `ServiceFormScreen`, `ExploreScreen` (filtro, também vindo do início) |
 | Validações dos formulários | `schemas` e as telas (limites iguais aos da API) |
 | Estado local | `favorites` (por utilizador) e `dialog` |
 
@@ -101,6 +102,6 @@ O que **não** cobrem: a aparência das telas, a navegação num emulador ou tel
 
 ## Limitações conhecidas
 
-- **Nomes no histórico.** A API só devolve os identificadores do prestador e do cliente de cada reserva. A app mostra o nome do próprio utilizador e `#<id>` para a outra parte.
-- A API não tem imagens, categorias, avaliações, notificações nem edição de perfil ou da senha, por isso a app não os oferece.
+- A API não tem imagens, avaliações, notificações nem edição de perfil ou da senha, por isso a app não os oferece. Os serviços mostram o ícone da categoria em vez de uma imagem.
+- As categorias são uma lista fixa de 8 (Casa, Beleza, Tecnologia, Educação, Saúde, Eventos, Automóvel e Outros). A API guarda só o código (`HOME`, `BEAUTY`…); os nomes em português estão em `src/constants.ts`. Os serviços criados antes das categorias aparecem em "Outros".
 - Os cartões da carteira só guardam os últimos 4 dígitos e servem de escolha na UI: o carregamento é um pagamento simulado pela API.
