@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../store/auth';
 import { useFavorites } from '../store/favorites';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { colors } from '../theme';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -38,6 +38,12 @@ const icon = (name: React.ComponentProps<typeof Ionicons>['name']) => {
   return TabIcon;
 };
 
+/**
+ * As abas só têm ícones. No iOS o React Navigation já lhes dá o rótulo ("Explorar, tab, 2 of 5"),
+ * mas no Android não dá nenhum: sem este, leitores de ecrã e testes de interface não as encontram.
+ */
+const tabLabel = (title: string) => (Platform.OS === 'android' ? title : undefined);
+
 function Tabs() {
   const role = useAuth((s) => s.user!.role);
   return (
@@ -45,19 +51,19 @@ function Tabs() {
       {/* Autorização na navegação: cada perfil só vê as suas telas */}
       {role === 'CLIENT' ? (
         <>
-          <Tab.Screen name="Home" component={ClientHomeScreen} options={{ title: 'Início', tabBarIcon: icon('home-outline') }} />
-          <Tab.Screen name="Explore" component={ExploreScreen} options={{ title: 'Explorar', tabBarIcon: icon('search-outline') }} />
-          <Tab.Screen name="Wallet" component={WalletScreen} options={{ title: 'Carteira', tabBarIcon: icon('wallet-outline') }} />
+          <Tab.Screen name="Home" component={ClientHomeScreen} options={{ title: 'Início', tabBarAccessibilityLabel: tabLabel('Início'), tabBarIcon: icon('home-outline') }} />
+          <Tab.Screen name="Explore" component={ExploreScreen} options={{ title: 'Explorar', tabBarAccessibilityLabel: tabLabel('Explorar'), tabBarIcon: icon('search-outline') }} />
+          <Tab.Screen name="Wallet" component={WalletScreen} options={{ title: 'Carteira', tabBarAccessibilityLabel: tabLabel('Carteira'), tabBarIcon: icon('wallet-outline') }} />
         </>
       ) : (
         <>
-          <Tab.Screen name="Home" component={ProviderHomeScreen} options={{ title: 'Início', tabBarIcon: icon('home-outline') }} />
-          <Tab.Screen name="MyServices" component={MyServicesScreen} options={{ title: 'Meus serviços', tabBarIcon: icon('briefcase-outline') }} />
-          <Tab.Screen name="Wallet" component={WalletScreen} options={{ title: 'Carteira', tabBarIcon: icon('wallet-outline') }} />
+          <Tab.Screen name="Home" component={ProviderHomeScreen} options={{ title: 'Início', tabBarAccessibilityLabel: tabLabel('Início'), tabBarIcon: icon('home-outline') }} />
+          <Tab.Screen name="MyServices" component={MyServicesScreen} options={{ title: 'Meus serviços', tabBarAccessibilityLabel: tabLabel('Meus serviços'), tabBarIcon: icon('briefcase-outline') }} />
+          <Tab.Screen name="Wallet" component={WalletScreen} options={{ title: 'Carteira', tabBarAccessibilityLabel: tabLabel('Carteira'), tabBarIcon: icon('wallet-outline') }} />
         </>
       )}
-      <Tab.Screen name="Transactions" component={TransactionsScreen} options={{ title: 'Histórico', tabBarIcon: icon('document-text-outline') }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil', tabBarIcon: icon('person-outline') }} />
+      <Tab.Screen name="Transactions" component={TransactionsScreen} options={{ title: 'Histórico', tabBarAccessibilityLabel: tabLabel('Histórico'), tabBarIcon: icon('document-text-outline') }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Perfil', tabBarAccessibilityLabel: tabLabel('Perfil'), tabBarIcon: icon('person-outline') }} />
     </Tab.Navigator>
   );
 }

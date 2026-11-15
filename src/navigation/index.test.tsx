@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { screen, waitFor } from '@testing-library/react-native';
 import { authApi, bookingsApi, servicesApi } from '../api';
 import { useAuth } from '../store/auth';
@@ -71,5 +72,21 @@ describe('permissões na navegação: cada perfil só vê as suas telas', () => 
     await renderComQuery(<Navigation />);
     await waitFor(() => expect(servicesApi.all).toHaveBeenCalled());
     expect(servicesApi.byProvider).not.toHaveBeenCalled();
+  });
+});
+
+describe('rótulos das abas no Android', () => {
+  const original = Platform.OS;
+  afterEach(() => { Platform.OS = original; });
+
+  it.each([
+    ['CLIENT', ['Início', 'Explorar', 'Carteira', 'Histórico', 'Perfil']],
+    ['PROVIDER', ['Início', 'Meus serviços', 'Carteira', 'Histórico', 'Perfil']],
+  ] as const)('o %s tem as abas com nome (leitores de ecrã e testes de interface)', async (role, nomes) => {
+    Platform.OS = 'android';
+    (authApi.me as jest.Mock).mockResolvedValue(utilizador(role));
+    await entrar(role);
+    await renderComQuery(<Navigation />);
+    for (const nome of nomes) expect(await screen.findByLabelText(nome)).toBeOnTheScreen();
   });
 });
