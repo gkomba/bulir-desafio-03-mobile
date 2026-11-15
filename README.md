@@ -90,10 +90,12 @@ O que cobrem, pelos pontos do enunciado:
 | Sessão e renovação do token | `api/client` (Bearer, renovação num 401, uma só de cada vez, quando a sessão termina e quando não) |
 | Serviços: criar, listar, editar e excluir | `ServiceFormScreen`, `MyServicesScreen`, `api/index` (`PATCH`, preço em cêntimos, lista só do prestador) |
 | Apenas prestadores gerem serviços e só clientes contratam | `navigation` (cada perfil só vê as suas telas e só faz os seus pedidos) |
+| Só clientes veem os serviços e contratam | `ExploreScreen` (pesquisa e ordenação), `ServiceDetailScreen` (com saldo segue para o pagamento, sem saldo leva à carteira) |
 | Contratar com verificação de saldo | `CheckoutScreen`, `useHire` (saldo igual ao preço chega, a menos não; chave de idempotência; duplo toque) |
 | Atualizar o saldo do cliente e do prestador | `WalletScreen`, `TransactionsScreen` (cancelar devolve o valor, o saldo é relido) |
 | Histórico: serviço, prestador, cliente e valor | `TxRow`, `TransactionsScreen` (filtros, balanço sem as canceladas, ações por perfil) |
 | Validações dos formulários | `schemas` e as telas (limites iguais aos da API) |
+| Estado local | `favorites` (por utilizador) e `dialog` |
 
 O que **não** cobrem: a aparência das telas, a navegação num emulador ou telemóvel, e a atomicidade das operações de saldo, que é do servidor (testada no backend).
 
