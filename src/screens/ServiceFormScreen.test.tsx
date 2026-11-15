@@ -10,7 +10,7 @@ jest.mock('../api', () => ({ servicesApi: { create: jest.fn(), update: jest.fn()
 
 const create = servicesApi.create as jest.Mock;
 const update = servicesApi.update as jest.Mock;
-const existente: Service = { id: 's1', title: 'Canalização', description: 'Reparação de fugas', price: 150.5, providerId: 'p1' };
+const existente: Service = { id: 's1', title: 'Canalização', description: 'Reparação de fugas', price: 150.5, providerId: 'p1', category: 'HOME' };
 
 const escrever = async (placeholder: string, texto: string) => userEvent.setup().type(screen.getByPlaceholderText(placeholder), texto);
 const preencher = async (titulo: string, descricao: string, preco: string) => {
@@ -62,7 +62,7 @@ describe('criar um serviço', () => {
     await renderComQuery(<ServiceFormScreen {...p} />);
     await preencher('  Canalização ', 'Reparação de fugas', '150,50');
     await guardar('Criar serviço');
-    await waitFor(() => expect(create).toHaveBeenCalledWith({ title: 'Canalização', description: 'Reparação de fugas', price: 150.5 }));
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ title: 'Canalização', description: 'Reparação de fugas', price: 150.5, category: 'OTHER' }));
     await waitFor(() => expect((p.navigation as unknown as { goBack: jest.Mock }).goBack).toHaveBeenCalled());
   });
 
@@ -77,6 +77,32 @@ describe('criar um serviço', () => {
   });
 });
 
+describe('categoria do serviço', () => {
+  const nomes = ['Casa', 'Beleza', 'Tecnologia', 'Educação', 'Saúde', 'Eventos', 'Automóvel', 'Outros'];
+
+  it('oferece as 8 categorias, em português', async () => {
+    await renderComQuery(<ServiceFormScreen {...props()} />);
+    for (const nome of nomes) expect(screen.getByRole('button', { name: nome })).toBeOnTheScreen();
+  });
+
+  it('um serviço novo começa em "Outros"', async () => {
+    await renderComQuery(<ServiceFormScreen {...props()} />);
+    expect(screen.getByRole('button', { name: 'Outros' })).toBeSelected();
+    expect(screen.getByRole('button', { name: 'Beleza' })).not.toBeSelected();
+  });
+
+  it('escolher uma categoria desmarca a anterior e envia o código da API', async () => {
+    create.mockResolvedValue(existente);
+    await renderComQuery(<ServiceFormScreen {...props()} />);
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Beleza' }));
+    expect(screen.getByRole('button', { name: 'Beleza' })).toBeSelected();
+    expect(screen.getByRole('button', { name: 'Outros' })).not.toBeSelected();
+    await preencher('Corte', 'Corte masculino', '50');
+    await guardar('Criar serviço');
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ title: 'Corte', description: 'Corte masculino', price: 50, category: 'BEAUTY' }));
+  });
+});
+
 describe('editar um serviço', () => {
   it('abre com os dados do serviço', async () => {
     await renderComQuery(<ServiceFormScreen {...props({ service: existente })} />);
@@ -86,6 +112,15 @@ describe('editar um serviço', () => {
     expect(screen.getByDisplayValue('150.5')).toBeOnTheScreen();
   });
 
+  it('abre com a categoria do serviço escolhida, e muda-a', async () => {
+    update.mockResolvedValue(existente);
+    await renderComQuery(<ServiceFormScreen {...props({ service: { ...existente, category: 'HEALTH' } })} />);
+    expect(screen.getByRole('button', { name: 'Saúde' })).toBeSelected();
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Eventos' }));
+    await guardar('Guardar alterações');
+    await waitFor(() => expect(update).toHaveBeenCalledWith('s1', expect.objectContaining({ category: 'EVENTS' })));
+  });
+
   it('guarda as alterações no mesmo serviço, sem criar outro', async () => {
     update.mockResolvedValue(existente);
     await renderComQuery(<ServiceFormScreen {...props({ service: existente })} />);
@@ -93,7 +128,7 @@ describe('editar um serviço', () => {
     await user.clear(screen.getByDisplayValue('150.5'));
     await user.type(screen.getByPlaceholderText('0,00'), '200');
     await guardar('Guardar alterações');
-    await waitFor(() => expect(update).toHaveBeenCalledWith('s1', { title: 'Canalização', description: 'Reparação de fugas', price: 200 }));
+    await waitFor(() => expect(update).toHaveBeenCalledWith('s1', { title: 'Canalização', description: 'Reparação de fugas', price: 200, category: 'HOME' }));
     expect(create).not.toHaveBeenCalled();
   });
 });

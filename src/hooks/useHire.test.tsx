@@ -13,7 +13,7 @@ jest.mock('../api', () => ({ authApi: { me: jest.fn() }, bookingsApi: { place: j
 
 const place = bookingsApi.place as jest.Mock;
 const me = authApi.me as jest.Mock;
-const servico: Service = { id: 's1', title: 'Canalização', description: 'Fugas', price: 200, providerId: 'p1' };
+const servico: Service = { id: 's1', title: 'Canalização', description: 'Fugas', price: 200, providerId: 'p1', category: 'HOME' };
 const cliente = (balance: number): User => ({ id: 'u1', name: 'Ana', email: 'ana@exemplo.com', role: 'CLIENT', balance });
 const quando = new Date('2026-12-01T10:00:00.000Z');
 const outroDia = new Date('2026-12-02T10:00:00.000Z');

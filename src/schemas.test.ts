@@ -60,7 +60,7 @@ describe('registerSchema: o NIF é só dos prestadores', () => {
 });
 
 describe('serviceSchema: preço maior que zero', () => {
-  const base = { title: 'Canalização', description: 'Reparação de fugas' };
+  const base = { title: 'Canalização', description: 'Reparação de fugas', category: 'HOME' };
 
   it.each(['0,01', '1', '150,50', '10000000'])('aceita o preço %s', (price) => {
     expect(serviceSchema.safeParse({ ...base, price }).success).toBe(true);
@@ -75,6 +75,22 @@ describe('serviceSchema: preço maior que zero', () => {
     expect(serviceSchema.safeParse({ ...base, title: 'a'.repeat(121), price: '1' }).success).toBe(false);
     expect(serviceSchema.safeParse({ ...base, description: '  ', price: '1' }).success).toBe(false);
     expect(serviceSchema.safeParse({ ...base, description: 'a'.repeat(1001), price: '1' }).success).toBe(false);
+  });
+});
+
+describe('serviceSchema: categoria', () => {
+  const base = { title: 'Canalização', description: 'Reparação de fugas', price: '10' };
+
+  it.each(['HOME', 'BEAUTY', 'TECHNOLOGY', 'EDUCATION', 'HEALTH', 'EVENTS', 'AUTOMOTIVE', 'OTHER'])('aceita a categoria %s', (category) => {
+    expect(serviceSchema.safeParse({ ...base, category }).success).toBe(true);
+  });
+
+  it.each(['casa', 'Home', '', 'CASA', 'HOME '])('recusa a categoria "%s"', (category) => {
+    expect(serviceSchema.safeParse({ ...base, category }).success).toBe(false);
+  });
+
+  it('exige a categoria, com a mensagem em português', () => {
+    expect(erros(serviceSchema.safeParse(base))).toEqual(['category: Escolha uma categoria']);
   });
 });
 

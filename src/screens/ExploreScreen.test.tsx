@@ -4,13 +4,14 @@ import { servicesApi } from '../api';
 import { useFavorites } from '../store/favorites';
 import { props, renderComQuery } from '../testing';
 import ExploreScreen from './ExploreScreen';
+import type { ServiceCategory } from '../types';
 
 jest.mock('../store/storage', () => ({ storage: { get: jest.fn(async () => null), set: jest.fn(async () => undefined), del: jest.fn(async () => undefined) } }));
 jest.mock('../api', () => ({ servicesApi: { all: jest.fn() } }));
 
 const all = servicesApi.all as jest.Mock;
-const s = (id: string, title: string, price: number, description = `Descrição de ${title}`) => ({ id, title, description, price, providerId: 'p1' });
-const CATALOGO = [s('1', 'Pintura', 350), s('2', 'Canalização', 80, 'Reparação de fugas'), s('3', 'Limpeza', 120), s('4', 'Eletricista', 95)];
+const s = (id: string, title: string, price: number, category: ServiceCategory, description = `Descrição de ${title}`) => ({ id, title, description, price, providerId: 'p1', category });
+const CATALOGO = [s('1', 'Pintura', 350, 'HOME'), s('2', 'Canalização', 80, 'HOME', 'Reparação de fugas'), s('3', 'Limpeza', 120, 'HOME'), s('4', 'Eletricista', 95, 'TECHNOLOGY')];
 const titulos = () => screen.getAllByText(/^(Pintura|Canalização|Limpeza|Eletricista)$/).map((t) => String(t.props.children));
 
 beforeEach(() => {
@@ -63,6 +64,68 @@ describe('catálogo do cliente', () => {
     await screen.findByText('Pintura');
     await userEvent.setup().type(screen.getByPlaceholderText('Pesquisar'), 'zzz');
     expect(screen.getByText('Nenhum serviço encontrado.')).toBeOnTheScreen();
+  });
+
+  describe('categorias', () => {
+    const catalogoComCategorias = [s('1', 'Pintura', 350, 'HOME'), s('2', 'Corte', 80, 'BEAUTY'), s('3', 'Manicure', 60, 'BEAUTY'), s('4', 'Massagem', 120, 'HEALTH')];
+    const nomes = () => screen.getAllByText(/^(Pintura|Corte|Manicure|Massagem)$/).map((t) => String(t.props.children));
+
+    beforeEach(() => all.mockResolvedValue(catalogoComCategorias));
+
+    it('mostra a linha de categorias', async () => {
+      await renderComQuery(<ExploreScreen {...props()} />);
+      expect(await screen.findByRole('button', { name: 'Beleza' })).toBeOnTheScreen();
+      expect(screen.getByRole('button', { name: 'Todos' })).toBeSelected();
+    });
+
+    it('filtra por categoria e mostra o nome e a contagem', async () => {
+      await renderComQuery(<ExploreScreen {...props()} />);
+      await screen.findByText('Pintura');
+      await userEvent.setup().press(screen.getByRole('button', { name: 'Beleza' }));
+      expect(nomes()).toEqual(['Manicure', 'Corte']);
+      expect(screen.getByText('Beleza · 2')).toBeOnTheScreen();
+      expect(screen.getByRole('button', { name: 'Beleza' })).toBeSelected();
+    });
+
+    it('"Todos" volta a mostrar tudo', async () => {
+      await renderComQuery(<ExploreScreen {...props()} />);
+      await screen.findByText('Pintura');
+      const user = userEvent.setup();
+      await user.press(screen.getByRole('button', { name: 'Saúde' }));
+      expect(nomes()).toEqual(['Massagem']);
+      await user.press(screen.getByRole('button', { name: 'Todos' }));
+      expect(nomes()).toHaveLength(4);
+      expect(screen.getByText('Todos os serviços · 4')).toBeOnTheScreen();
+    });
+
+    it('combina a categoria com a pesquisa', async () => {
+      await renderComQuery(<ExploreScreen {...props()} />);
+      await screen.findByText('Pintura');
+      const user = userEvent.setup();
+      await user.press(screen.getByRole('button', { name: 'Beleza' }));
+      await user.type(screen.getByPlaceholderText('Pesquisar'), 'mani');
+      expect(nomes()).toEqual(['Manicure']);
+    });
+
+    it('uma categoria sem serviços diz que nenhum foi encontrado', async () => {
+      await renderComQuery(<ExploreScreen {...props()} />);
+      await screen.findByText('Pintura');
+      await userEvent.setup().press(screen.getByRole('button', { name: 'Automóvel' }));
+      expect(screen.getByText('Nenhum serviço encontrado.')).toBeOnTheScreen();
+    });
+
+    it('vindo do início com uma categoria, já chega filtrada', async () => {
+      await renderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
+      await screen.findByText('Corte');
+      expect(nomes()).toEqual(['Manicure', 'Corte']);
+      expect(screen.getByRole('button', { name: 'Beleza' })).toBeSelected();
+    });
+
+    it('"Ver todas" no início (sem categoria) não filtra', async () => {
+      await renderComQuery(<ExploreScreen {...props({ category: null })} />);
+      await screen.findByText('Pintura');
+      expect(nomes()).toHaveLength(4);
+    });
   });
 
   it('abrir um serviço leva ao detalhe com esse serviço', async () => {

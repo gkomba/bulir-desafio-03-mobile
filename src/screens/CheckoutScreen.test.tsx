@@ -12,7 +12,7 @@ jest.mock('../api', () => ({ authApi: { me: jest.fn() }, bookingsApi: { place: j
 
 const place = bookingsApi.place as jest.Mock;
 const me = authApi.me as jest.Mock;
-const servico: Service = { id: 's1', title: 'Canalização', description: 'Reparação de fugas', price: 200, providerId: 'p1' };
+const servico: Service = { id: 's1', title: 'Canalização', description: 'Reparação de fugas', price: 200, providerId: 'p1', category: 'HOME' };
 const entrar = (balance: number) => useAuth.getState().setSession({ accessToken: 'a', refreshToken: 'r', user: { id: 'u1', name: 'Ana', email: 'ana@exemplo.com', role: 'CLIENT', balance } });
 const pagar = () => screen.getByRole('button', { name: 'Pagar 200,00 Kz' });
 const tocar = () => userEvent.setup({ advanceTimers: jest.advanceTimersByTime });

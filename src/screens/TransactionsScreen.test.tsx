@@ -16,7 +16,7 @@ const complete = bookingsApi.complete as jest.Mock;
 const me = authApi.me as jest.Mock;
 
 const reserva = (id: string, extra: Partial<Booking> = {}): Booking => ({
-  id, serviceId: 's1', serviceTitle: `Serviço ${id}`, providerId: 'p1', clientId: 'u1', amount: 100, status: 'CONFIRMED',
+  id, serviceId: 's1', serviceTitle: `Serviço ${id}`, providerId: 'p1', providerName: 'Paulo Barbeiro', clientId: 'u1', clientName: 'Ana Silva', amount: 100, status: 'CONFIRMED',
   scheduledAt: '2026-12-01T10:00:00.000Z', createdAt: '2026-11-15T10:00:00.000Z', ...extra,
 });
 const entrar = (role: Role, id = 'u1') => useAuth.getState().setSession({ accessToken: 'a', refreshToken: 'r', user: { id, name: 'Ana', email: 'ana@exemplo.com', role, balance: 0 } });
