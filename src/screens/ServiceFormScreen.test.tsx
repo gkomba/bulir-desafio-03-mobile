@@ -174,6 +174,21 @@ describe('imagem do serviço', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  it('se guardar o serviço falha depois do envio, tentar de novo não reenvia a imagem', async () => {
+    (uploadImage as jest.Mock).mockResolvedValue(IMG);
+    (servicesApi.imageAuthorization as jest.Mock).mockResolvedValue(auth);
+    create.mockRejectedValueOnce(erroHttp(500, 'Falhou')).mockResolvedValue({ ...existente });
+    await renderComQuery(<ServiceFormScreen {...props()} />);
+    await preencher('Pintura', 'Pintar paredes', '100');
+    await escolher();
+    await guardar('Criar serviço');
+    await screen.findByText('Falhou');
+    await guardar('Criar serviço');
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    expect(uploadImage).toHaveBeenCalledTimes(1);
+    expect(create).toHaveBeenLastCalledWith(expect.objectContaining({ imageUrl: IMG }));
+  });
+
   it('cancelar a escolha não muda nada', async () => {
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({ canceled: true, assets: null });
     await renderComQuery(<ServiceFormScreen {...props()} />);
@@ -184,10 +199,17 @@ describe('imagem do serviço', () => {
 
   it('uma imagem que não se consegue comprimir mostra o motivo', async () => {
     (ImagePicker.launchImageLibraryAsync as jest.Mock).mockResolvedValue({ canceled: false, assets: [{ uri: 'file:///x.jpg', width: 9, height: 9 }] });
-    (prepareImage as jest.Mock).mockRejectedValue(new Error('A imagem é demasiado grande, mesmo depois de comprimida. Escolha outra.'));
+    (prepareImage as jest.Mock).mockRejectedValue(new (jest.requireActual('../imageUpload').ImageTooLargeError)());
     await renderComQuery(<ServiceFormScreen {...props()} />);
     await userEvent.setup().press(screen.getByRole('button', { name: 'Escolher imagem' }));
     expect(await screen.findByText(/demasiado grande/)).toBeOnTheScreen();
+  });
+
+  it('um erro inesperado do seletor mostra uma mensagem em português', async () => {
+    (ImagePicker.launchImageLibraryAsync as jest.Mock).mockRejectedValue(new Error('Native module failed'));
+    await renderComQuery(<ServiceFormScreen {...props()} />);
+    await userEvent.setup().press(screen.getByRole('button', { name: 'Escolher imagem' }));
+    expect(await screen.findByText('Não foi possível usar essa imagem. Escolha outra.')).toBeOnTheScreen();
   });
 
   it('ao editar, "Tirar imagem" envia imageUrl: null', async () => {

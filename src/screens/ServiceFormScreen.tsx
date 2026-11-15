@@ -1,5 +1,5 @@
 // Criar / editar serviço (reutiliza o mesmo formulário)
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,6 +22,11 @@ export default function ServiceFormScreen({ route, navigation }: NativeStackScre
   const [apiError, setApiError] = useState('');
   const [image, setImage] = useState<ImageChoice>({ kind: 'keep' });
   const [progress, setProgress] = useState<number | null>(null);
+  // A imagem já enviada fica guardada: se guardar o serviço falhar, tentar de novo não a reenvia.
+  const uploaded = useRef<{ from: string; url: string } | undefined>(undefined);
+  // Sair do ecrã cancela o envio em curso.
+  const abort = useRef(new AbortController());
+  useEffect(() => { const c = abort.current; return () => c.abort(); }, []);
   const { control, handleSubmit } = useForm<ServiceForm>({
     resolver: zodResolver(serviceSchema),
     defaultValues: { title: editing?.title ?? '', description: editing?.description ?? '', price: editing ? String(editing.price) : '', category: editing?.category ?? DEFAULT_CATEGORY },
@@ -32,14 +37,18 @@ export default function ServiceFormScreen({ route, navigation }: NativeStackScre
       if (image.kind === 'remove') payload.imageUrl = null;
       if (image.kind === 'new') {
         // Só agora, ao guardar, a imagem sai do telemóvel: diretamente para o Cloudinary.
-        const auth = await servicesApi.imageAuthorization();
-        setProgress(0);
-        payload.imageUrl = await uploadImage({ uri: image.image.uri, name: 'servico.jpg', type: 'image/jpeg' }, auth, { onProgress: setProgress });
+        if (uploaded.current?.from !== image.image.uri) {
+          const auth = await servicesApi.imageAuthorization();
+          setProgress(0);
+          const url = await uploadImage({ uri: image.image.uri, name: 'servico.jpg', type: 'image/jpeg' }, auth, { onProgress: setProgress, signal: abort.current.signal });
+          uploaded.current = { from: image.image.uri, url };
+        }
+        payload.imageUrl = uploaded.current.url;
       }
       return editing ? servicesApi.update(editing.id, payload) : servicesApi.create(payload);
     },
     onSettled: () => setProgress(null),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-services'] }); navigation.goBack(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-services'] }); if (!abort.current.signal.aborted) navigation.goBack(); },
     onError: (e) => setApiError(e instanceof UploadError ? e.message : errorMessage(e)),
   });
   return (

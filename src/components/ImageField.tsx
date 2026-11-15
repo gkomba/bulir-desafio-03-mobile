@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ServiceImage } from './media';
-import { formatBytes, prepareImage, type PreparedImage } from '../imageUpload';
+import { formatBytes, ImageTooLargeError, prepareImage, type PreparedImage } from '../imageUpload';
 import { colors, fonts, radius, spacing } from '../theme';
 import type { ServiceCategory } from '../types';
 
@@ -35,7 +35,7 @@ export function ImageField({ category, currentUrl, value, onChange }: {
       const asset = result.assets[0];
       onChange({ kind: 'new', image: await prepareImage({ uri: asset.uri, width: asset.width, height: asset.height }) });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Não foi possível usar essa imagem.');
+      setError(e instanceof ImageTooLargeError ? e.message : 'Não foi possível usar essa imagem. Escolha outra.');
     } finally {
       setBusy(false);
     }
@@ -57,7 +57,7 @@ export function ImageField({ category, currentUrl, value, onChange }: {
           )}
           {busy && (
             <View style={[box, { position: 'absolute', backgroundColor: 'rgba(255,255,255,0.7)', alignItems: 'center', justifyContent: 'center' }]}>
-              <ActivityIndicator color={colors.accent} />
+              <ActivityIndicator color={colors.accent} accessibilityLabel="A preparar a imagem" />
             </View>
           )}
         </Pressable>
