@@ -75,7 +75,27 @@ Ecossistema: React Query (consulta e cache), Zustand (estado), React Hook Form c
 ```bash
 npm run typecheck
 npm run lint
+npm test
 ```
+
+## Testes
+
+Jest com `jest-expo` e a React Native Testing Library. Os testes ficam ao lado do código (`*.test.ts` e `*.test.tsx`) e correm sem rede nem emulador. A API é simulada por um servidor falso (`src/api/testing.ts`) que troca o adaptador do cliente HTTP: o pedido passa por todos os interceptors reais (Bearer, renovação da sessão) e o teste vê exatamente o que a app enviou.
+
+O que cobrem, pelos pontos do enunciado:
+
+| Enunciado | Testes |
+| --- | --- |
+| Login com e-mail ou NIF, token guardado | `schemas`, `LoginScreen`, `api/index`, `store/auth` (envia `{ email }` ou `{ nif }`, guarda a sessão, recupera-a ao abrir a app) |
+| Sessão e renovação do token | `api/client` (Bearer, renovação num 401, uma só de cada vez, quando a sessão termina e quando não) |
+| Serviços: criar, listar, editar e excluir | `ServiceFormScreen`, `MyServicesScreen`, `api/index` (`PATCH`, preço em cêntimos, lista só do prestador) |
+| Apenas prestadores gerem serviços e só clientes contratam | `navigation` (cada perfil só vê as suas telas e só faz os seus pedidos) |
+| Contratar com verificação de saldo | `CheckoutScreen`, `useHire` (saldo igual ao preço chega, a menos não; chave de idempotência; duplo toque) |
+| Atualizar o saldo do cliente e do prestador | `WalletScreen`, `TransactionsScreen` (cancelar devolve o valor, o saldo é relido) |
+| Histórico: serviço, prestador, cliente e valor | `TxRow`, `TransactionsScreen` (filtros, balanço sem as canceladas, ações por perfil) |
+| Validações dos formulários | `schemas` e as telas (limites iguais aos da API) |
+
+O que **não** cobrem: a aparência das telas, a navegação num emulador ou telemóvel, e a atomicidade das operações de saldo, que é do servidor (testada no backend).
 
 ## Limitações conhecidas
 
