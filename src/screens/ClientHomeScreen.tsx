@@ -18,7 +18,8 @@ export default function ClientHomeScreen() {
   const { ids, toggle } = useFavorites();
 
   const all = services.data ?? [];
-  const newest = [...all].reverse().slice(0, 8);
+  // A API já devolve os mais recentes primeiro.
+  const newest = all.slice(0, 8);
   const cheapest = [...all].sort((a, b) => a.price - b.price).slice(0, 8);
   const favs = all.filter((s) => ids.includes(s.id));
   const open = (service: Service) => nav.navigate('ServiceDetail', { service });

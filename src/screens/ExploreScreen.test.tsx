@@ -27,10 +27,10 @@ describe('catálogo do cliente', () => {
     expect(titulos()).toHaveLength(4);
   });
 
-  it('por defeito mostra os mais recentes primeiro (os últimos da API)', async () => {
+  it('por defeito mostra os mais recentes primeiro (a API já os devolve nessa ordem)', async () => {
     await renderComQuery(<ExploreScreen {...props()} />);
     await screen.findByText('Pintura');
-    expect(titulos()).toEqual(['Eletricista', 'Limpeza', 'Canalização', 'Pintura']);
+    expect(titulos()).toEqual(['Pintura', 'Canalização', 'Limpeza', 'Eletricista']);
   });
 
   it.each([
@@ -82,7 +82,7 @@ describe('catálogo do cliente', () => {
       await renderComQuery(<ExploreScreen {...props()} />);
       await screen.findByText('Pintura');
       await userEvent.setup().press(screen.getByRole('button', { name: 'Beleza' }));
-      expect(nomes()).toEqual(['Manicure', 'Corte']);
+      expect(nomes()).toEqual(['Corte', 'Manicure']);
       expect(screen.getByText('Beleza · 2')).toBeOnTheScreen();
       expect(screen.getByRole('button', { name: 'Beleza' })).toBeSelected();
     });
@@ -117,7 +117,7 @@ describe('catálogo do cliente', () => {
     it('vindo do início com uma categoria, já chega filtrada', async () => {
       await renderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
       await screen.findByText('Corte');
-      expect(nomes()).toEqual(['Manicure', 'Corte']);
+      expect(nomes()).toEqual(['Corte', 'Manicure']);
       expect(screen.getByRole('button', { name: 'Beleza' })).toBeSelected();
     });
 
@@ -136,7 +136,7 @@ describe('catálogo do cliente', () => {
         await userEvent.setup().press(screen.getByRole('button', { name: 'Todos' }));
         expect(nomes()).toHaveLength(4);
         await rerenderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
-        expect(nomes()).toEqual(['Manicure', 'Corte']);
+        expect(nomes()).toEqual(['Corte', 'Manicure']);
       });
 
       it('"category: null" (Ver todas) limpa o filtro anterior', async () => {
