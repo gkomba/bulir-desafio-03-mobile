@@ -8,6 +8,8 @@ export type ServiceCategory = 'HOME' | 'BEAUTY' | 'TECHNOLOGY' | 'EDUCATION' | '
 
 export interface Service {
   id: string; title: string; description: string; price: number; providerId: string; category: ServiceCategory;
+  /** Imagem do serviço (Cloudinary). Sem ela, mostra-se o ícone da categoria. */
+  imageUrl?: string;
 }
 
 export type BookingStatus = 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';

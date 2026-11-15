@@ -2,13 +2,14 @@ import { http } from './client';
 import { useAuth } from '../store/auth';
 import type { Booking, BookingStatus, Role, Service, ServiceCategory, Session, User } from '../types';
 import type { LoginForm, RegisterForm } from '../schemas';
+import type { UploadAuthorization } from '../cloudinaryUpload';
 
 /*
  * Formato da API (Desafio 1) e conversão para os tipos da app.
  * A API guarda dinheiro em cêntimos; a app mostra e edita Kwanzas.
  */
 interface UserDto { id: string; fullName: string; email: string; nif: string | null; role: Role; balanceCents: number }
-interface ServiceDto { id: string; providerId: string; name: string; description: string; priceCents: number; category: ServiceCategory }
+interface ServiceDto { id: string; providerId: string; name: string; description: string; priceCents: number; category: ServiceCategory; imageUrl: string | null }
 interface BookingDto {
   id: string; serviceId: string; serviceName: string; providerId: string; providerName: string; clientId: string; clientName: string;
   priceCents: number; status: BookingStatus; scheduledAt: string; createdAt: string;
@@ -22,7 +23,7 @@ const toUser = (u: UserDto): User => ({
   id: u.id, name: u.fullName, email: u.email, nif: u.nif ?? undefined, role: u.role, balance: toKwanzas(u.balanceCents),
 });
 const toService = (s: ServiceDto): Service => ({
-  id: s.id, title: s.name, description: s.description, price: toKwanzas(s.priceCents), providerId: s.providerId, category: s.category,
+  id: s.id, title: s.name, description: s.description, price: toKwanzas(s.priceCents), providerId: s.providerId, category: s.category, imageUrl: s.imageUrl ?? undefined,
 });
 const toBooking = (b: BookingDto): Booking => ({
   id: b.id, serviceId: b.serviceId, serviceTitle: b.serviceName, providerId: b.providerId, providerName: b.providerName, clientId: b.clientId, clientName: b.clientName,
@@ -68,9 +69,12 @@ export const signOut = async (): Promise<void> => {
   await useAuth.getState().logout();
 };
 
-export interface ServicePayload { title: string; description: string; price: number; category: ServiceCategory }
+/** `imageUrl`: um endereço põe/muda a imagem, `null` tira-a e ausente deixa-a como está. */
+export interface ServicePayload { title: string; description: string; price: number; category: ServiceCategory; imageUrl?: string | null }
 
-const toBody = ({ title, description, price, category }: ServicePayload) => ({ name: title, description, priceCents: toCents(price), category });
+const toBody = ({ title, description, price, category, imageUrl }: ServicePayload) => ({
+  name: title, description, priceCents: toCents(price), category, ...(imageUrl !== undefined && { imageUrl }),
+});
 
 export const servicesApi = {
   all: () => allPages<ServiceDto>('/services').then((l) => l.map(toService)),
@@ -78,6 +82,8 @@ export const servicesApi = {
   create: (d: ServicePayload) => http.post<ServiceDto>('/services', toBody(d)).then((r) => toService(r.data)),
   update: (id: string, d: ServicePayload) => http.patch<ServiceDto>(`/services/${id}`, toBody(d)).then((r) => toService(r.data)),
   remove: (id: string) => http.delete(`/services/${id}`).then(() => undefined),
+  /** A autorização, assinada pelo backend, para enviar uma imagem diretamente ao Cloudinary. */
+  imageAuthorization: () => http.post<UploadAuthorization>('/services/image-signature').then((r) => r.data),
 };
 
 export const bookingsApi = {
