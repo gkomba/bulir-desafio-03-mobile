@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Dimensions, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuth } from '../store/auth';
@@ -22,7 +22,7 @@ export default function ServiceDetailScreen({ route, navigation }: NativeStackSc
   return (
     <Screen>
       <View>
-        <ServiceImage category={service.category} style={{ height: 240, borderRadius: radius.lg }} iconSize={72} />
+        <ServiceImage category={service.category} imageUrl={service.imageUrl} width={Dimensions.get('window').width} height={240} style={{ height: 240, borderRadius: radius.lg }} iconSize={72} />
         <Ionicons onPress={() => toggle(service.id)} name={fav ? 'heart' : 'heart-outline'} size={22} color={fav ? colors.danger : colors.muted}
           style={{ position: 'absolute', top: 12, right: 12, backgroundColor: '#fff', borderRadius: 18, padding: 7, overflow: 'hidden' }} />
       </View>

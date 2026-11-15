@@ -48,13 +48,22 @@ A API do Desafio 1 autentica por cookies `HttpOnly`, que uma app React Native n�
 | Utilizador e saldo | `GET /auth/me` |
 | Catálogo | `GET /services` (paginado: junta as páginas; cada serviço traz a `category`) |
 | Serviços do prestador | `GET /services?providerId=` |
-| Criar, editar, excluir serviço | `POST`, `PATCH` e `DELETE /services/:id` (`name`, `priceCents`, `category`) |
+| Criar, editar, excluir serviço | `POST`, `PATCH` e `DELETE /services/:id` (`name`, `priceCents`, `category`, `imageUrl`) |
+| Imagem do serviço | `POST /services/image-signature` (só prestadores) e envio direto ao Cloudinary |
 | Contratar | `POST /bookings` com `serviceId` e `scheduledAt`, com `Idempotency-Key` |
 | Histórico | `GET /bookings` (cada reserva traz `clientName` e `providerName`) |
 | Cancelar (cliente) e concluir (prestador) | `POST /bookings/:id/cancel` e `/complete` |
 | Carregar saldo | `POST /payments` (pagamento simulado, com `Idempotency-Key`) |
 
 Contratar envia uma `Idempotency-Key`, por isso repetir o pedido (por exemplo, com rede instável) não cobra duas vezes. A app verifica o saldo antes, mas quem decide, de forma atómica, é o servidor.
+
+## Imagens dos serviços
+
+O prestador escolhe uma foto ao criar ou editar um serviço. O ficheiro nunca passa pela API.
+
+- **Antes de enviar** (`src/imageUpload.ts`): a foto é reduzida (lado maior a 1280 px, nunca ampliada) e comprimida em JPEG, com uma qualidade cada vez menor (0,8 a 0,4) e, se for preciso, um tamanho menor (1024 e 800 px) até ficar abaixo de 450 KB. Cada tentativa parte do original, e o JPEG não leva os metadados da câmara, por isso a localização da foto não sai do telemóvel. Só se envia ao guardar o serviço, e por isso desistir não deixa imagens esquecidas.
+- **Envio** (`src/cloudinaryUpload.ts`): com a assinatura que o backend dá, diretamente ao Cloudinary, com progresso, limite de tempo e uma repetição se falhar a rede. Uma recusa nunca se repete.
+- **Ao mostrar** (`src/images.ts`): pede-se ao Cloudinary a imagem já no tamanho do sítio e da densidade do ecrã, arredondado a escalões (96, 192, 320, 480, 720, 1080 e 1440 px, para a rede de distribuição reaproveitar as versões), com recorte no assunto, formato e qualidade automáticos (`c_fill,g_auto,q_auto,f_auto`). Enquanto carrega, aparece uma mancha desfocada de 24 px. O `expo-image` guarda as imagens em memória e em disco, e as primeiras 8 da lista de serviços descarregam-se antes de aparecerem. Sem imagem, ou se falhar, mostra-se o ícone da categoria.
 
 ## Estrutura
 
@@ -103,6 +112,6 @@ O que **não** cobrem: a aparência das telas, a navegação num emulador ou tel
 
 ## Limitações conhecidas
 
-- A API não tem imagens, avaliações, notificações nem edição de perfil ou da senha, por isso a app não os oferece. Os serviços mostram o ícone da categoria em vez de uma imagem.
+- A API não tem avaliações, notificações nem edição de perfil ou da senha, por isso a app não os oferece. Uma imagem substituída ou tirada continua no Cloudinary (apagá-la exigiria o segredo no servidor). Os serviços sem imagem mostram o ícone da categoria.
 - As categorias são uma lista fixa de 8 (Casa, Beleza, Tecnologia, Educação, Saúde, Eventos, Automóvel e Outros). A API guarda só o código (`HOME`, `BEAUTY`…); os nomes em português estão em `src/constants.ts`. Os serviços criados antes das categorias aparecem em "Outros".
 - Os cartões da carteira só guardam os últimos 4 dígitos e servem de escolha na UI: o carregamento é um pagamento simulado pela API.

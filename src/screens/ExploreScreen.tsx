@@ -1,5 +1,5 @@
 // Cliente: catálogo em grelha com pesquisa, categorias e ordenação
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import { ServiceGridCard } from '../components/media';
 import { CategoryRow } from '../components/home';
 import { Empty, ErrorState, Loading, Title } from '../components/ui';
 import { categoryLabel } from '../constants';
+import { prefetchImages } from '../images';
 import type { ServiceCategory } from '../types';
 import { Screen } from '../components/Screen';
 import { colors, fonts, radius, spacing } from '../theme';
@@ -36,6 +37,9 @@ export default function ExploreScreen({ navigation, route }: NativeStackScreenPr
     .filter((s) => `${s.title} ${s.description}`.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => sort === 'cheap' ? a.price - b.price : sort === 'expensive' ? b.price - a.price : sort === 'az' ? a.title.localeCompare(b.title) : 0);
   if (sort === 'new') list.reverse();
+  // As primeiras imagens da lista descarregam-se já, antes de o utilizador as ver.
+  const firstImages = list.slice(0, 8).map((s) => s.imageUrl).join('|');
+  useEffect(() => { prefetchImages(firstImages.split('|'), { width: 170, height: 170 }); }, [firstImages]);
 
   const header = (
     <View>

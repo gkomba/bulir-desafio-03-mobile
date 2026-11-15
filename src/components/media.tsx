@@ -1,17 +1,47 @@
 import React from 'react';
 import { Pressable, Text, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { Card } from './ui';
+import { optimizedUrl, placeholderUrl } from '../images';
 import { colors, fonts, radius, shadowSoft, spacing } from '../theme';
 import { categoryIcon } from '../constants';
 import { money } from '../format';
 import type { Service, ServiceCategory } from '../types';
 
-/** A API ainda não guarda imagens dos serviços: mostra o ícone da categoria. */
-export function ServiceImage({ category, style, iconSize = 34 }: { category: ServiceCategory; style?: ViewStyle; iconSize?: number }) {
+/**
+ * A imagem do serviço, pedida ao Cloudinary já no tamanho certo para o ecrã (`width` e `height`,
+ * em pontos), com uma mancha desfocada enquanto carrega e cache em memória e disco.
+ * Sem imagem, ou se ela falhar, mostra o ícone da categoria.
+ */
+export function ServiceImage({ category, imageUrl, width, height, style, iconSize = 34 }: {
+  category: ServiceCategory; imageUrl?: string; width: number; height?: number; style?: ViewStyle; iconSize?: number;
+}) {
+  // Guarda-se qual endereço falhou: ao mudar de imagem, volta-se a tentar sem efeitos.
+  const [failedUrl, setFailedUrl] = React.useState<string>();
+  const failed = failedUrl === imageUrl;
+  const base = [{ backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' } as ViewStyle, style];
+  if (!imageUrl || failed) {
+    return (
+      <View style={base}>
+        <Ionicons name={categoryIcon(category)} size={iconSize} color={colors.accent} />
+      </View>
+    );
+  }
   return (
-    <View style={[{ backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }, style]}>
-      <Ionicons name={categoryIcon(category)} size={iconSize} color={colors.accent} />
+    <View style={base}>
+      <Image
+        source={{ uri: optimizedUrl(imageUrl, { width, height }) }}
+        placeholder={{ uri: placeholderUrl(imageUrl, height ? width / height : 1) }}
+        placeholderContentFit="cover"
+        contentFit="cover"
+        transition={200}
+        cachePolicy="memory-disk"
+        recyclingKey={imageUrl}
+        onError={() => setFailedUrl(imageUrl)}
+        accessibilityIgnoresInvertColors
+        style={{ width: '100%', height: '100%' }}
+      />
     </View>
   );
 }
@@ -24,7 +54,7 @@ export function ServiceGridCard({ service, onPress, favorite, width }: {
   return (
     <Pressable onPress={onPress} style={[{ width: width ?? '100%' }, { backgroundColor: '#fff', borderRadius: radius.lg, padding: 6, ...shadowSoft }]}>
       <View>
-        <ServiceImage category={service.category} style={{ width: '100%', aspectRatio: 1, borderRadius: radius.md }} iconSize={44} />
+        <ServiceImage category={service.category} imageUrl={service.imageUrl} width={(width ?? 170) - 12} height={(width ?? 170) - 12} style={{ width: '100%', aspectRatio: 1, borderRadius: radius.md }} iconSize={44} />
         {favorite && (
           <Pressable onPress={favorite.onToggle} hitSlop={8} style={{ position: 'absolute', right: 8, top: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={favorite.active ? 'heart' : 'heart-outline'} size={17} color={favorite.active ? colors.danger : colors.muted} />
@@ -47,7 +77,7 @@ export function ServiceRow({ service, actions, onPress, favorite }: {
   return (
     <View style={{ backgroundColor: '#fff', borderRadius: radius.lg, padding: 10, marginBottom: spacing.md, ...shadowSoft }}>
       <Pressable onPress={onPress} disabled={!onPress} style={{ flexDirection: 'row', gap: 12 }}>
-        <ServiceImage category={service.category} style={{ width: 92, height: 92, borderRadius: radius.md }} />
+        <ServiceImage category={service.category} imageUrl={service.imageUrl} width={92} height={92} style={{ width: 92, height: 92, borderRadius: radius.md }} />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text numberOfLines={1} style={{ flex: 1, fontFamily: fonts.headingSemi, fontSize: 15, color: colors.text }}>{service.title}</Text>
