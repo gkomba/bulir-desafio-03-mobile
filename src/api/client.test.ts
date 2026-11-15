@@ -131,6 +131,35 @@ describe('errorMessage', () => {
   it('mostra a mensagem da API', () => expect(errorMessage(erro({ message: 'Saldo insuficiente' }, 409))).toBe('Saldo insuficiente'));
   it('mostra a primeira mensagem de uma lista de validação', () => expect(errorMessage(erro({ message: ['name must be longer', 'x'] }))).toBe('name must be longer'));
   it('sem corpo, dá uma mensagem genérica', () => expect(errorMessage(erro(undefined, 500))).toBe('Ocorreu um erro inesperado.'));
-  it('sem resposta, é um problema de rede', () => expect(errorMessage(new AxiosError('Network Error'))).toBe('Sem ligação ao servidor. Verifique a rede.'));
+  describe('sem resposta, é um problema de rede', () => {
+    const emDev = (valor: boolean, corpo: () => void) => {
+      const g = globalThis as unknown as { __DEV__: boolean };
+      const antes = g.__DEV__;
+      g.__DEV__ = valor;
+      try { corpo(); } finally { g.__DEV__ = antes; }
+    };
+
+    it('em produção, só a mensagem', () => emDev(false, () => {
+      expect(errorMessage(new AxiosError('Network Error', AxiosError.ERR_NETWORK))).toBe('Sem ligação ao servidor. Verifique a rede.');
+    }));
+
+    it('em desenvolvimento, acrescenta o endereço tentado e o código do erro', () => emDev(true, () => {
+      const texto = errorMessage(new AxiosError('Network Error', AxiosError.ERR_NETWORK));
+      expect(texto).toMatch(/^Sem ligação ao servidor\. Verifique a rede\.\n\[http:\/\/\S+\/v1 · ERR_NETWORK\]$/);
+    }));
+
+    it('em desenvolvimento, distingue um tempo esgotado (firewall) de uma ligação recusada', () => emDev(true, () => {
+      expect(errorMessage(new AxiosError('timeout', AxiosError.ECONNABORTED))).toContain('ECONNABORTED');
+    }));
+
+    it('em desenvolvimento, sem código, diz que não há', () => emDev(true, () => {
+      expect(errorMessage(new AxiosError('x'))).toContain('sem código');
+    }));
+
+    it('uma resposta do servidor nunca leva o endereço', () => emDev(true, () => {
+      const erro = new AxiosError('x', undefined, undefined, {}, { data: { message: 'Credenciais inválidas' }, status: 401, statusText: '', headers: {}, config: {} as never });
+      expect(errorMessage(erro)).toBe('Credenciais inválidas');
+    }));
+  });
   it('um erro que não é do Axios é genérico', () => expect(errorMessage(new Error('boom'))).toBe('Ocorreu um erro inesperado.'));
 });
