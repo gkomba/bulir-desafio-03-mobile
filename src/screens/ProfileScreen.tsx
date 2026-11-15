@@ -29,7 +29,7 @@ export default function ProfileScreen({ navigation }: NativeStackScreenProps<any
   return (
     <Screen>
       <View style={{ alignItems: 'center', marginBottom: spacing.md }}>
-        <Image source={require('../../assets/logo.jpeg')} style={{ width: 92, height: 92, borderRadius: 46, borderWidth: 4, borderColor: colors.tint }} />
+        <Image source={require('../../assets/logo-perfil.jpeg')} style={{ width: 92, height: 92, borderRadius: 46, borderWidth: 4, borderColor: colors.tint }} />
         <Title style={{ fontSize: 22, marginTop: 10 }}>{user.name}</Title>
         <Text style={{ fontFamily: fonts.body, color: colors.muted }}>{user.email}</Text>
         <View style={{ marginTop: 6 }}><Chip text={isClient ? 'Cliente' : 'Prestador'} /></View>
