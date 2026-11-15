@@ -67,7 +67,7 @@ export default function ProviderHomeScreen() {
         </>)}
 
         <SectionHeader title="Vendas recentes" action="Ver tudo" onAction={() => nav.navigate('Transactions')} />
-        {sales.length ? sales.slice(0, 3).map((t) => <TxRow key={t.id} tx={t} userId={user.id} userName={user.name} />) : <Empty icon="receipt-outline" text="Ainda não tem vendas." />}
+        {sales.length ? sales.slice(0, 3).map((t) => <TxRow key={t.id} tx={t} userId={user.id} />) : <Empty icon="receipt-outline" text="Ainda não tem vendas." />}
 
         <SectionHeader title="Os seus serviços" action="Gerir" onAction={() => nav.navigate('MyServices')} />
         {mine.length

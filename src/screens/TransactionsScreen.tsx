@@ -52,7 +52,7 @@ export default function TransactionsScreen() {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => { refetch(); }} />}
           ListEmptyComponent={<Empty icon="receipt-outline" text="Ainda sem reservas." />}
           renderItem={({ item }) => (
-            <TxRow tx={item} userId={user.id} userName={user.name}
+            <TxRow tx={item} userId={user.id}
               onCancel={user.role === 'CLIENT' ? () => ask(item.id, 'cancel') : undefined}
               onComplete={user.role === 'PROVIDER' ? () => ask(item.id, 'complete') : undefined} />
           )} />
