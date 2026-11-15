@@ -56,7 +56,9 @@ http.interceptors.response.use(
 
 export const errorMessage = (e: unknown): string => {
   if (isAxiosError(e)) {
-    if (!e.response) return 'Sem ligação ao servidor. Verifique a rede.';
+    // Sem resposta. Em desenvolvimento, diz-se o endereço tentado e o código do erro, que
+    // distingue ERR_NETWORK (recusado ou inalcançável) de ECONNABORTED (sem resposta a tempo).
+    if (!e.response) return `Sem ligação ao servidor. Verifique a rede.${__DEV__ ? `\n[${API_URL} · ${e.code ?? 'sem código'}]` : ''}`;
     const message = (e.response.data as { message?: string | string[] } | undefined)?.message;
     if (Array.isArray(message)) return message[0] ?? 'Dados inválidos.';
     return message ?? 'Ocorreu um erro inesperado.';
