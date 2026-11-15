@@ -121,6 +121,42 @@ describe('catálogo do cliente', () => {
       expect(screen.getByRole('button', { name: 'Beleza' })).toBeSelected();
     });
 
+    describe('com o ecrã já aberto, a navegação traz parâmetros novos', () => {
+      it('outra categoria muda o filtro', async () => {
+        const { rerenderComQuery } = await renderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
+        await screen.findByText('Corte');
+        await rerenderComQuery(<ExploreScreen {...props({ category: 'HEALTH' })} />);
+        expect(nomes()).toEqual(['Massagem']);
+        expect(screen.getByRole('button', { name: 'Saúde' })).toBeSelected();
+      });
+
+      it('a mesma categoria volta a aplicar-se depois de o utilizador escolher "Todos"', async () => {
+        const { rerenderComQuery } = await renderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
+        await screen.findByText('Corte');
+        await userEvent.setup().press(screen.getByRole('button', { name: 'Todos' }));
+        expect(nomes()).toHaveLength(4);
+        await rerenderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
+        expect(nomes()).toEqual(['Manicure', 'Corte']);
+      });
+
+      it('"category: null" (Ver todas) limpa o filtro anterior', async () => {
+        const { rerenderComQuery } = await renderComQuery(<ExploreScreen {...props({ category: 'BEAUTY' })} />);
+        await screen.findByText('Corte');
+        await rerenderComQuery(<ExploreScreen {...props({ category: null })} />);
+        expect(nomes()).toHaveLength(4);
+        expect(screen.getByRole('button', { name: 'Todos' })).toBeSelected();
+      });
+
+      it('um novo render com os mesmos parâmetros não desfaz a escolha do utilizador', async () => {
+        const p = props({ category: 'BEAUTY' });
+        const { rerenderComQuery } = await renderComQuery(<ExploreScreen {...p} />);
+        await screen.findByText('Corte');
+        await userEvent.setup().press(screen.getByRole('button', { name: 'Saúde' }));
+        await rerenderComQuery(<ExploreScreen {...p} />);
+        expect(nomes()).toEqual(['Massagem']);
+      });
+    });
+
     it('"Ver todas" no início (sem categoria) não filtra', async () => {
       await renderComQuery(<ExploreScreen {...props({ category: null })} />);
       await screen.findByText('Pintura');
